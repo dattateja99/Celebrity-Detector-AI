@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Celebrity Recognition & Q&A</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fadeInUp {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .neon-border {
+      box-shadow: 0 0 15px rgba(244, 114, 182, 0.5);
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-950 via-indigo-900 to-purple-900 text-white min-h-screen p-6 flex items-center justify-center">
+  <div class="max-w-5xl w-full mx-auto space-y-10 animate-fadeInUp">
+
+    <!-- Header -->
+    <div class="text-center space-y-3">
+      <h1 class="text-5xl font-extrabold text-rose-400 drop-shadow-lg tracking-tight">
+        🌟 Celebrity Recognition & Q&A
+      </h1>
+      <p class="text-indigo-200 text-sm">Upload an image to detect the celebrity and ask AI-powered questions!</p>
+    </div>
+
+    <!-- Upload Form -->
+    <form method="POST" enctype="multipart/form-data" class="glass p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-5 border border-indigo-800">
+      <input type="file" name="image" accept="image/*" required 
+        class="p-3 w-full max-w-md text-sm text-indigo-200 bg-indigo-950 border border-indigo-700 rounded-lg focus:ring-2 focus:ring-rose-500 transition outline-none">
+      <button type="submit" 
+        class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 px-8 py-3 rounded-lg text-black font-semibold shadow-lg transform hover:scale-105 transition">
+        🔍 Detect Celebrity
+      </button>
+    </form>
+
+    <!-- Result Section -->
+    {% if result_img_data %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-start animate-fadeInUp">
+      
+      <!-- Image Card -->
+      <div class="glass p-4 rounded-2xl shadow-lg border border-indigo-800 neon-border">
+        <img src="data:image/jpeg;base64,{{ result_img_data }}" alt="Detected Celebrity" class="rounded-xl w-full">
+      </div>
+
+      <!-- Info & QnA Card -->
+      <div class="glass p-6 rounded-2xl shadow-lg border border-indigo-800 space-y-5">
+        <h2 class="text-2xl font-bold text-rose-300 mb-3 flex items-center gap-2">📄 Celebrity Details</h2>
+
+        <!-- Detected Info -->
+        <div class="bg-indigo-950/50 p-4 rounded-xl border border-indigo-800 space-y-2 text-sm text-indigo-100">
+          {% for line in player_info.splitlines() %}
+            {% if "**Full Name**" in line %}
+              <p><span class="text-rose-400 font-semibold">👤 Full Name:</span> {{ line.split(':', 1)[-1].strip() }}</p>
+            {% elif "**Profession**" in line %}
+              <p><span class="text-rose-400 font-semibold">🎭 Profession:</span> {{ line.split(':', 1)[-1].strip() }}</p>
+            {% elif "**Nationality**" in line %}
+              <p><span class="text-rose-400 font-semibold">🌍 Nationality:</span> {{ line.split(':', 1)[-1].strip() }}</p>
+            {% elif "**Famous For**" in line %}
+              <p><span class="text-rose-400 font-semibold">⭐ Famous For:</span> {{ line.split(':', 1)[-1].strip() }}</p>
+            {% elif "**Top Achievements**" in line %}
+              <p><span class="text-rose-400 font-semibold">🏆 Top Achievements:</span></p>
+              <ul class="list-disc list-inside text-rose-200 ml-3">
+            {% elif line.startswith("  - ") %}
+              <li>{{ line.replace('  - ', '') }}</li>
+            {% endif %}
+          {% endfor %}
+          {% if player_info.find("**Top Achievements**") != -1 %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <!-- Question Form -->
+        <form method="POST" class="space-y-3">
+          <input type="hidden" name="player_name" value="{{ player_info.splitlines()[0].split(':')[-1] }}">
+          <input type="hidden" name="player_info" value="{{ player_info }}">
+          <input type="hidden" name="result_img_data" value="{{ result_img_data }}">
+          
+          <input name="question" placeholder="Ask something about this celebrity..." required 
+            class="w-full p-3 rounded-lg bg-indigo-900 border border-indigo-700 text-white text-sm placeholder-indigo-400 focus:ring-2 focus:ring-rose-500 outline-none">
+          <button type="submit" 
+            class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 px-6 py-2 rounded-lg font-semibold shadow-md transition transform hover:scale-105">
+            💬 Ask
+          </button>
+        </form>
+
+        <!-- Answer -->
+        {% if answer %}
+        <div class="mt-5 bg-indigo-950/50 border border-indigo-800 p-4 rounded-lg text-sm text-rose-200">
+          <strong class="text-white">Answer:</strong><br>{{ answer }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
