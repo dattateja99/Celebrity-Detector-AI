@@ -13,7 +13,8 @@ jobs:
       - checkout
 
   build_docker_image:
-    executor: docker-executor
+    machine:
+    image: ubuntu-2204:current
     steps:
       - checkout
       - setup_remote_docker
