@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: llmops-app
-        image: us-central1-docker.pkg.dev/gen-lang-client-0729539659/llmops-repo/llmops-app:latest
+        image: us-central1-docker.pkg.dev/kinetic-pilot-477923-a7/llmops-repo/llmops-app:latest
         ports:
         - containerPort: 5001
         env:
